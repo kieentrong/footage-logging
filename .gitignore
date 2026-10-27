@@ -7,3 +7,5 @@ _SOCIAL/
 *.mp4
 *.mov
 *.wav
+dist/
+tools/thresholds.json

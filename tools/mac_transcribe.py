@@ -8,6 +8,7 @@ Bỏ qua clip đã có bản mlx (trừ khi --force). Có thể Ctrl+C rồi ch�
 import argparse, json, os, re, sys, time
 
 import mlx_whisper
+OUT_DIR = os.environ.get('FL_OUT', '_SOCIAL')   # thư mục kết quả trong dự án (đổi bằng biến môi trường FL_OUT)
 
 MODEL = os.environ.get('TLS_WHISPER_MODEL', 'mlx-community/whisper-large-v3-turbo')
 HALLU = [r'subscribe', r'đăng ký kênh', r'cảm ơn các bạn đã (theo dõi|xem)', r'thanks for watching', r'ghiền mì gõ',
@@ -41,7 +42,7 @@ def main():
     ap.add_argument('--force', action='store_true')
     ap.add_argument('--lang', help='ép ngôn ngữ (vi/en); mặc định tự nhận')
     a = ap.parse_args()
-    A = os.path.join(a.project, '_SOCIAL', 'analysis')
+    A = os.path.join(a.project, OUT_DIR, 'analysis')
     cdir, tdir = os.path.join(A, 'clips'), os.path.join(A, 'transcripts')
     if not os.path.isdir(cdir):
         sys.exit(f'Chưa có {cdir} — cần chạy analyze.py trước (Claude chạy trong máy ảo).')

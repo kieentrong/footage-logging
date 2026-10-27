@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Footage Logging — hiệu chỉnh ngưỡng máy đo theo mắt anh Kiên.
+"""Footage Logging — hiệu chỉnh ngưỡng máy đo theo mắt người dùng (chấm tay ~40 cảnh).
 
   python3 calibrate.py sample <dự án> [--n 40]
       Chọn ~40 cảnh trải đều các loại máy đoán (chân máy/gimbal/cầm tay, pan/tilt/tĩnh, các cỡ cảnh)
       → analysis/calib/sample.json (+ ảnh kf để đưa lên trang chấm)
+  python3 calibrate.py page <dự án>
+      Tạo trang chấm tự chứa (ảnh nhúng sẵn) → analysis/calib/cham.html. Mở bằng trình duyệt, chấm xong
+      bấm "Tải answers.json" (hoặc đăng trang thành Artifact có db để Claude đọc thẳng kết quả).
   python3 calibrate.py fit <dự án> <answers.json>
       answers.json: {"<clip>#sNN": {"rig": "...", "move": "...", "size": "...", "stability": "...", "sharp": "..."}}
       (bỏ trống trường nào thì coi như máy đoán đúng). So với máy đoán, dò lại ngưỡng rung/chân máy/gimbal
@@ -15,6 +18,7 @@ import glob, itertools, json, os, random, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import shots as S
+OUT_DIR = os.environ.get('FL_OUT', '_SOCIAL')   # thư mục kết quả trong dự án (đổi bằng biến môi trường FL_OUT)
 
 SIZES = S.SIZE_LABELS
 RIG_CLASS = {'chân máy': 'tripod', 'gimbal': 'smooth', 'slider': 'smooth', 'dolly': 'smooth', 'cầm tay': 'hand', 'rung': 'hand'}
@@ -31,7 +35,7 @@ def rig_class(label):
 
 
 def load_segments(project):
-    A = os.path.join(project, '_SOCIAL', 'analysis')
+    A = os.path.join(project, OUT_DIR, 'analysis')
     out = {}
     for f in glob.glob(os.path.join(A, 'shots', '*.json')):
         s = json.load(open(f))
@@ -145,9 +149,30 @@ def fit(project, answers_path):
     print('\n'.join(rep)); print('→ tools/thresholds.json (chạy lại shots.py --force để áp dụng)')
 
 
+def page(project):
+    import base64
+    A = os.path.join(project, OUT_DIR, 'analysis')
+    items = json.load(open(os.path.join(A, 'calib', 'sample.json')))
+    data = []
+    for it in items:
+        src = ''
+        p = os.path.join(A, 'calib', 'img', it.get('img', ''))
+        if it.get('img') and os.path.exists(p):
+            src = 'data:image/jpeg;base64,' + base64.b64encode(open(p, 'rb').read()).decode()
+        data.append(dict(k=it['key'], src=src, kind=it['kind'], t=f"{it['start']:.1f}–{it['end']:.1f}s",
+                         path=os.path.basename(it['path']), rig=it['rig'], move=it['move'], size=it['size'] or '',
+                         stab=it['stability'], sharp=it['sharp']))
+    tpl = open(os.path.join(HERE, '..', 'calib', 'template.html'), encoding='utf-8').read()
+    out = os.path.join(A, 'calib', 'cham.html')
+    open(out, 'w', encoding='utf-8').write(tpl.replace('/*__DATA__*/[]', json.dumps(data, ensure_ascii=False)))
+    print(f'{len(data)} cảnh → {out}')
+
+
 if __name__ == '__main__':
     cmd, proj = sys.argv[1], sys.argv[2]
     if cmd == 'sample':
         sample(proj, int(sys.argv[sys.argv.index('--n') + 1]) if '--n' in sys.argv else 40)
+    elif cmd == 'page':
+        page(proj)
     elif cmd == 'fit':
         fit(proj, sys.argv[3])

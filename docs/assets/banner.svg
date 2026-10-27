@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="400" viewBox="0 0 1280 400" font-family="-apple-system, 'Segoe UI', Inter, Roboto, 'Helvetica Neue', Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#06111F"/><stop offset="1" stop-color="#0A2347"/>
+    </linearGradient>
+    <linearGradient id="acc" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0061FF"/><stop offset="1" stop-color="#60EFFF"/>
+    </linearGradient>
+    <pattern id="holes" width="28" height="28" patternUnits="userSpaceOnUse">
+      <rect x="7" y="8" width="14" height="12" rx="3" fill="#06111F"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="400" fill="url(#bg)"/>
+  <!-- film strip -->
+  <g transform="translate(700 52) rotate(-8 290 150)">
+    <rect width="620" height="300" rx="10" fill="#0E1B2E" stroke="#1E3556"/>
+    <rect x="0" y="0" width="620" height="28" fill="url(#holes)"/>
+    <rect x="0" y="272" width="620" height="28" fill="url(#holes)"/>
+    <g>
+      <rect x="18" y="40" width="182" height="220" rx="6" fill="#123056"/>
+      <rect x="219" y="40" width="182" height="220" rx="6" fill="#163C6B"/>
+      <rect x="420" y="40" width="182" height="220" rx="6" fill="#123056"/>
+      <path d="M18 210 C70 170 120 190 200 150 L200 260 L18 260Z" fill="#1F5A9A" opacity=".7"/>
+      <path d="M219 200 C270 160 330 175 401 130 L401 260 L219 260Z" fill="#2A6FBF" opacity=".7"/>
+      <path d="M420 215 C470 185 540 190 602 160 L602 260 L420 260Z" fill="#1F5A9A" opacity=".7"/>
+      <circle cx="310" cy="120" r="30" fill="none" stroke="#60EFFF" stroke-width="3"/>
+      <path d="M250 120 H360" stroke="#60EFFF" stroke-width="3"/>
+      <path d="M352 112 L366 120 L352 128" fill="none" stroke="#60EFFF" stroke-width="3"/>
+      <rect x="30" y="52" width="70" height="20" rx="4" fill="#06111F" opacity=".8"/><text x="40" y="66" font-size="12" fill="#9FC3FF">s00 0.0s</text>
+      <rect x="231" y="52" width="70" height="20" rx="4" fill="#06111F" opacity=".8"/><text x="241" y="66" font-size="12" fill="#9FC3FF">s01 4.2s</text>
+      <rect x="432" y="52" width="70" height="20" rx="4" fill="#06111F" opacity=".8"/><text x="442" y="66" font-size="12" fill="#9FC3FF">s02 9.8s</text>
+      <rect x="18" y="248" width="120" height="6" fill="#2BD67B"/><rect x="138" y="248" width="40" height="6" fill="#F5C542"/><rect x="178" y="248" width="22" height="6" fill="#2BD67B"/>
+      <rect x="219" y="248" width="182" height="6" fill="#2BD67B"/>
+      <rect x="420" y="248" width="60" height="6" fill="#2BD67B"/><rect x="480" y="248" width="50" height="6" fill="#FF5A5A"/><rect x="530" y="248" width="72" height="6" fill="#2BD67B"/>
+    </g>
+  </g>
+  <!-- text -->
+  <g transform="translate(72 0)">
+    <rect x="0" y="92" width="170" height="30" rx="15" fill="#0061FF" opacity=".18" stroke="#0061FF"/>
+    <text x="85" y="112" font-size="14" font-weight="600" fill="#9FC3FF" text-anchor="middle" letter-spacing="1.5">CLAUDE SKILL</text>
+    <text x="0" y="186" font-size="64" font-weight="800" fill="#FFFFFF" letter-spacing="-1">Footage Logging</text>
+    <rect x="0" y="206" width="120" height="5" rx="2.5" fill="url(#acc)"/>
+    <text x="0" y="252" font-size="24" fill="#C9D8EE">Log &amp; lọc source quay như một assistant editor:</text>
+    <text x="0" y="286" font-size="24" fill="#C9D8EE">QC từng giây · chia cảnh · ngôn ngữ máy · bóc băng</text>
+    <text x="0" y="320" font-size="24" fill="#C9D8EE">· đánh dấu đoạn hay · bảng log HTML/CSV</text>
+  </g>
+</svg>

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Trợ lý social — cài & chạy mlx-whisper (large-v3-turbo) trên Mac Apple Silicon.
+# Footage Logging — cài & chạy mlx-whisper (large-v3-turbo) trên Mac Apple Silicon.
 # Lần đầu: tự cài vào ~/.tls_mlx (không đụng Python hệ thống), tải model ~1.6GB.
-# Dùng:  bash "/Volumes/NEX4/Tai Nguyen/TroLySocial/tools/mac_whisper.sh" "<folder dự án>" [--only POV] [--force]
+# Dùng:  bash tools/mac_whisper.sh "<folder dự án>" [--only POV] [--force]
 # Chỉ cài, không chạy:  bash ".../mac_whisper.sh" --install
 set -e
 HERE="$(cd "$(dirname "$0")" && pwd)"

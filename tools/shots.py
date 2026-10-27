@@ -28,6 +28,7 @@ import argparse, glob, json, math, os, re, subprocess, sys, time
 from datetime import datetime, timedelta, timezone
 import numpy as np
 import cv2
+OUT_DIR = os.environ.get('FL_OUT', '_SOCIAL')   # thư mục kết quả trong dự án (đổi bằng biến môi trường FL_OUT)
 
 FPS = 5          # khung/giây phân tích
 GW = 320         # rộng ảnh xám cho optical flow
@@ -79,7 +80,7 @@ def XML_INDEX(project):
     if project not in _XML:
         idx = {}
         for root, dirs, files in os.walk(project):
-            dirs[:] = [d for d in dirs if not d.startswith(('.', '_SOCIAL'))]
+            dirs[:] = [d for d in dirs if not d.startswith(('.', '_SOCIAL', OUT_DIR))]
             for f in files:
                 if f.startswith('._'):
                     continue
@@ -215,11 +216,44 @@ class People:
         import logging
         os.environ.setdefault('GLOG_minloglevel', '3')
         logging.getLogger('absl').setLevel(logging.ERROR)
-        import mediapipe as mp
-        self.fd = mp.solutions.face_detection.FaceDetection(model_selection=1, min_detection_confidence=0.55)
-        self.pose = mp.solutions.pose.Pose(static_image_mode=True, model_complexity=1, min_detection_confidence=0.5)
+        self.engine = 'mediapipe'
+        try:
+            import mediapipe as mp
+            self.fd = mp.solutions.face_detection.FaceDetection(model_selection=1, min_detection_confidence=0.55)
+            self.pose = mp.solutions.pose.Pose(static_image_mode=True, model_complexity=1, min_detection_confidence=0.5)
+        except Exception:
+            # mediapipe chưa cài, hoặc bản mới (Python 3.13+) đã bỏ mp.solutions → dùng OpenCV (kém chính xác hơn)
+            self.engine = 'opencv'
+            self.haar = self.hog = None
+            try:
+                self.haar = cv2.CascadeClassifier(os.path.join(cv2.data.haarcascades, 'haarcascade_frontalface_default.xml'))
+            except Exception:
+                pass
+            try:
+                self.hog = cv2.HOGDescriptor(); self.hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+            except Exception:
+                self.hog = None
+
+    def _opencv(self, bgr):
+        h, w = bgr.shape[:2]
+        g = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
+        faces = [dict(x=x / w, y=y / h, w=fw / w, h=fh / h, score=0.6)
+                 for (x, y, fw, fh) in (self.haar.detectMultiScale(g, 1.15, 5, minSize=(max(16, w // 40),) * 2)
+                                        if self.haar is not None else [])]
+        faces.sort(key=lambda f: -f['h'])
+        body = None
+        rects = self.hog.detectMultiScale(bgr, winStride=(8, 8), padding=(8, 8), scale=1.06)[0] if self.hog is not None else []
+        if len(rects):
+            x, y, bw, bh = max(rects, key=lambda r: r[2] * r[3])
+            y1 = (y + bh) / h
+            full = y1 < 0.97 and y / h > 0.02
+            body = dict(x0=x / w, x1=(x + bw) / w, y0=y / h, y1=min(1.0, y1), ankles=2 if full else 0,
+                        knees=2 if full else 0, hips=2, nose_vis=bool(faces))
+        return faces, body
 
     def __call__(self, bgr):
+        if self.engine == 'opencv':
+            return self._opencv(bgr)
         rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
         h, w = bgr.shape[:2]
         faces = []
@@ -312,7 +346,7 @@ def audio_analysis(src, dur):
 
 
 def transcript_spans(project, cid):
-    f = os.path.join(project, '_SOCIAL', 'analysis', 'transcripts', cid + '.json')
+    f = os.path.join(project, OUT_DIR, 'analysis', 'transcripts', cid + '.json')
     if not os.path.exists(f):
         return []
     try:
@@ -898,17 +932,17 @@ def strip_vn(s):
 # ---------------------------------------------------------------- mic & take
 
 def mics(project):
-    A = os.path.join(project, '_SOCIAL', 'analysis')
+    A = os.path.join(project, OUT_DIR, 'analysis')
     wavs = []
     for root, dirs, files in os.walk(project):
-        dirs[:] = [d for d in dirs if not d.startswith(('.', '_SOCIAL'))]
+        dirs[:] = [d for d in dirs if not d.startswith(('.', '_SOCIAL', OUT_DIR))]
         for f in files:
             if f.startswith('._') or not f.lower().endswith(('.wav', '.bwf')):
                 continue
             m = re.search(r'(20\d{6})_(\d{6})', f)
             if not m:
                 continue
-            st = datetime.strptime(m.group(1) + m.group(2), '%Y%m%d%H%M%S').replace(tzinfo=timezone(timedelta(hours=7)))
+            st = datetime.strptime(m.group(1) + m.group(2), '%Y%m%d%H%M%S').replace(tzinfo=timezone(timedelta(hours=float(os.environ.get('FL_TZ', '7')))))
             p = os.path.join(root, f)
             d = float((probe(p).get('format') or {}).get('duration') or 0)
             wavs.append((st, st + timedelta(seconds=d), os.path.relpath(p, project)))
@@ -940,7 +974,7 @@ def dhash(path):
 
 
 def takes(project):
-    A = os.path.join(project, '_SOCIAL', 'analysis')
+    A = os.path.join(project, OUT_DIR, 'analysis')
     items = []
     for f in sorted(glob.glob(os.path.join(A, 'shots', '*.json'))):
         s = json.load(open(f))
@@ -1011,7 +1045,11 @@ if __name__ == '__main__':
     ap.add_argument('--takes', action='store_true')
     ap.add_argument('--ids', nargs='*', help='chỉ các clip id này (thử nghiệm)')
     a = ap.parse_args()
-    outdir = os.path.join(a.project, '_SOCIAL', 'analysis')
+    outdir = os.path.join(a.project, OUT_DIR, 'analysis')
+    try:
+        import mediapipe as _mp; _mp.solutions.face_detection
+    except Exception:
+        print('⚠ Không có mediapipe (bản có mp.solutions, cần Python ≤3.12 + mediapipe==0.10.14) → nhận diện người bằng OpenCV, cỡ cảnh kém chính xác hơn.')
     if a.mics:
         mics(a.project); sys.exit()
     if a.takes:

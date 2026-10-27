@@ -26,7 +26,7 @@ const audioDir = args.includes('--audio-dir') ? args[args.indexOf('--audio-dir')
 const budget = args.includes('--budget') ? +args[args.indexOf('--budget') + 1] : 0; // giây, chạy nhiều lượt
 const T0 = Date.now();
 let left = 0;
-const ana = path.join(project, '_SOCIAL', 'analysis');
+const ana = path.join(project, process.env.FL_OUT || '_SOCIAL', 'analysis');
 const outDir = path.join(ana, 'transcripts');
 fs.mkdirSync(outDir, { recursive: true });
 

@@ -16,9 +16,11 @@ import argparse, json, os, re, subprocess, sys, hashlib
 from datetime import datetime, timedelta, timezone
 import numpy as np
 import cv2
+OUT_DIR = os.environ.get('FL_OUT', '_SOCIAL')   # thư mục kết quả trong dự án (đổi bằng biến môi trường FL_OUT)
+TZ = timezone(timedelta(hours=float(os.environ.get('FL_TZ', '7'))))   # múi giờ nơi quay (FL_TZ, mặc định UTC+7)
 
 VIDEO_EXT = ('.mp4', '.mov', '.m4v', '.mts', '.avi', '.mkv', '.insv', '.lrv')
-SKIP_DIRS = ('_SOCIAL', '99_EXPORT', 'Proxy', 'THMBNL', 'SUB', '03_ELEMENT', '.Trash')
+SKIP_DIRS = (OUT_DIR, '_SOCIAL', '99_EXPORT', 'Proxy', 'THMBNL', 'SUB', '03_ELEMENT', '.Trash')
 FPS = 5
 W = 360
 
@@ -65,7 +67,7 @@ def creation_time(tags, path):
                 dt = datetime.fromisoformat(v2[:25] if '+' not in v2[19:] else v2)
                 if dt.tzinfo is None:
                     dt = dt.replace(tzinfo=timezone.utc)
-                return dt.astimezone(timezone(timedelta(hours=7))).isoformat()
+                return dt.astimezone(TZ).isoformat()
             except Exception:
                 pass
     # Sony XML sidecar  (NEX1234M01.XML)
@@ -77,7 +79,7 @@ def creation_time(tags, path):
                 return m.group(1)
     m = re.search(r'(20\d{6})_(\d{6})', os.path.basename(path))
     if m:
-        return datetime.strptime(m.group(1) + m.group(2), '%Y%m%d%H%M%S').isoformat() + '+07:00'
+        return datetime.strptime(m.group(1) + m.group(2), '%Y%m%d%H%M%S').replace(tzinfo=TZ).isoformat()
     return None
 
 
@@ -349,7 +351,7 @@ if __name__ == '__main__':
     ap.add_argument('--budget', type=float, default=0, help='giây; ngừng nhận clip mới sau mốc này (chạy nhiều lượt)')
     ap.add_argument('--cost', type=float, default=0.4, help='giây xử lý cho mỗi giây video (máy ảo 4 nhân ~0.4 với HEVC POV)')
     a = ap.parse_args()
-    outdir = os.path.join(a.project, '_SOCIAL', 'analysis')
+    outdir = os.path.join(a.project, OUT_DIR, 'analysis')
     os.makedirs(os.path.join(outdir, 'clips'), exist_ok=True)
     vids = list_videos(a.project, a.only)
     if a.limit:

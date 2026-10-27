@@ -13,7 +13,7 @@
 
 Notes do Claude ghi — analysis/notes/notes_<nhóm>.json, khoá là "<clip_id>#sNN" (một cảnh) hoặc "<clip_id>" (cả clip):
   {"<clip_id>#s03": {"desc": "...", "scene_type": "phản ứng", "scene": "quán cà phê phố đường tàu",
-     "people": ["Sofia"], "action": "...", "tags": ["tàu hoả"], "angle": "ngang tầm mắt",
+     "people": ["nhân vật A"], "action": "...", "tags": ["tàu hoả"], "angle": "ngang tầm mắt",
      "size": "cận (CU)", "move": "...", "rig": "...",              # chỉ ghi khi SỬA lại số đo máy
      "highlights": [{"start": 4.0, "end": 12.0, "why": "...", "score": 10}],
      "content": 9, "role": "hook", "risks": ["hút thuốc 18–30s"], "usable": true, "reject_reason": null,
@@ -23,10 +23,11 @@ Thứ tự ưu tiên khi gộp: Claude (notes) > AI local (vlm) > máy đo (shot
 import csv, glob, html, json, os, re, subprocess, sys
 import numpy as np
 import cv2
+OUT_DIR = os.environ.get('FL_OUT', '_SOCIAL')   # thư mục kết quả trong dự án (đổi bằng biến môi trường FL_OUT)
 
 
 def A_(project):
-    return os.path.join(project, '_SOCIAL', 'analysis')
+    return os.path.join(project, OUT_DIR, 'analysis')
 
 
 def load(project):

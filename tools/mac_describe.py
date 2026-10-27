@@ -9,6 +9,7 @@ Model mặc định chọn theo RAM: ≥16GB → Qwen2.5-VL-7B-Instruct-4bit (~5
 Đổi model: TLS_VLM_MODEL=mlx-community/<tên> bash mac_local.sh describe ...
 """
 import argparse, glob, json, os, re, subprocess, sys, time
+OUT_DIR = os.environ.get('FL_OUT', '_SOCIAL')   # thư mục kết quả trong dự án (đổi bằng biến môi trường FL_OUT)
 
 PROMPT = """Bạn là trợ lý dựng phim đang log source. Ảnh là lưới 2×2 gồm 4 khung theo thứ tự thời gian (trái→phải, trên→dưới) của MỘT cảnh quay.
 Thông tin máy đo được (có thể sai, hãy sửa nếu ảnh cho thấy khác): thiết bị {device}; cách đặt máy: {rig}; chuyển động: {move}; cỡ cảnh: {size}; số người: {people}.
@@ -62,7 +63,7 @@ def main():
     ap.add_argument('--force', action='store_true')
     ap.add_argument('--limit', type=int, default=0)
     a = ap.parse_args()
-    A = os.path.join(a.project, '_SOCIAL', 'analysis')
+    A = os.path.join(a.project, OUT_DIR, 'analysis')
     out = os.path.join(A, 'vlm'); os.makedirs(out, exist_ok=True)
     jobs = []
     for f in sorted(glob.glob(os.path.join(A, 'shots', '*.json'))):
