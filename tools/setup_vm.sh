@@ -2,8 +2,12 @@
 # Trợ lý social — chuẩn bị máy ảo (chạy đầu mỗi phiên, ~1 phút, chạy lại nhiều lần không sao)
 # Dùng: bash "$HOME/mnt/Tai Nguyen/TroLySocial/tools/setup_vm.sh"
 set -e
-TLS="$HOME/mnt/Tai Nguyen/TroLySocial"
+# folder bộ công cụ có thể được cấp dưới tên "Tai Nguyen" hoặc "TroLySocial"
+TLS="$HOME/mnt/Tai Nguyen/TroLySocial"; [ -d "$TLS" ] || TLS="$HOME/mnt/TroLySocial"
 python3 -c "import cv2, numpy, PIL" 2>/dev/null || pip3 install --user -q opencv-python-headless numpy pillow
+# Footage Logging: nhận diện mặt + dáng người (bản 0.10.14 có sẵn model trong gói, không cần tải mạng)
+python3 -c "import mediapipe" 2>/dev/null || pip3 install --user -q "mediapipe==0.10.14"
+mkdir -p "$HOME/.tls_cache/shots"
 mkdir -p "$HOME/tls" "$HOME/.tls_cache"
 cd "$HOME/tls"
 if [ ! -d node_modules/sts-whisper-small ] || [ ! -d node_modules/@huggingface/transformers ]; then

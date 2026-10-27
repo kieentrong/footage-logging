@@ -80,3 +80,11 @@ Kiểm tra: dựng contact sheet từ final (8–24 khung) và xem; đo loudness
 
 - Commit **ghi đè** file đã có đôi khi không hiện trong máy ảo (wc -c vẫn số cũ dù chờ lâu). Cách chắc: commit ra tên mới **chưa từng dùng** (`x.md.<giờ>`; dùng lại cùng tên tạm cũng bị lỗi y vậy) rồi `mv -f x.v2.md x.md` trong máy ảo, kiểm lại `wc -c`.
 - edit.json vừa ghi đè trên ổ có thể 'No such file' với process khác vài giây → sinh edit vào `~/.tls_cache/editX.json` và chạy render.py với file đó (render vẫn ghi kết quả vào `out` trên ổ), rồi copy edit.json ra ổ để lưu.
+
+## Footage Logging v2 — log theo từng cảnh (27/10/2026)
+Thứ tự: `analyze.py` → `shots.py` → (Mac) `mac_local.sh all` → `review.py pages` → Claude lượt 1 → `review.py candidates/strip` → Claude lượt 2 (notes) → `review.py log`.
+- `shots.py`: chia clip thành khúc 45s (`~/.tls_cache/shots/*.pkl`, ảnh nén JPEG, tự xoá sau khi ghép), 4 tiến trình, mỗi tiến trình giữ một bộ mediapipe (tạo lại mỗi khúc làm rò bộ nhớ → sập). Tiến trình sập thì tự khởi động lại; khúc làm sập 2 lần bị bỏ qua. Lặp lệnh tới "còn 0 clip". Tốc độ thực tế: POV HEVC ~0.7s xử lý/giây video/tiến trình, proxy ProRes ~0.25.
+- Ngưỡng nằm trong `TH` đầu file, ghi đè bằng `tools/thresholds.json` (calibrate.py tạo). Đổi thuật toán thì tăng `VERSION` để đo lại.
+- Xong máy chính thì `touch _SOCIAL/analysis/shots/_DONE` → `chay_ai_local.command` chuyển sang mô tả cả máy chính.
+- Bẫy: (1) máy ảo chỉ ~10GB — đầy ổ làm tiến trình sập, xem `df -h $HOME`; (2) `device_commit_files` có thể giao bản cũ nếu dùng lại cùng đường dẫn nguồn → mỗi lần commit dùng tên file nguồn mới, kiểm `md5sum`; (3) đừng `cd` vào thư mục khác trong cùng lệnh trước khi gọi tool với `.` là dự án; (4) vật lớn chạy qua (tàu, xe) làm máy đo nhầm thành chuyển động máy — lượt 2 của Claude sửa.
+- Mac: Terminal chỉ cho Claude bấm, không gõ → dùng file `.command` để anh nhấp đúp.
