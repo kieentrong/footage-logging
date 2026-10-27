@@ -1,0 +1,9 @@
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+._*
+_SOCIAL/
+*.mp4
+*.mov
+*.wav
