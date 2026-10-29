@@ -22,11 +22,12 @@ pipi(){ "$PY" -m pip install -q "$@" 2>/dev/null || "$PY" -m pip install -q --us
 "$PY" -c "import cv2, numpy, PIL" 2>/dev/null || { echo "  → cài opencv-python-headless numpy pillow"; pipi opencv-python-headless numpy pillow; }
 ok "opencv $("$PY" -c 'import cv2;print(cv2.__version__)')"
 
-# mediapipe 0.10.14 (có mp.solutions, model nằm sẵn trong gói) cần Python ≤ 3.12.
+# mediapipe 0.10.14 (có mp.solutions, model nằm sẵn trong gói) cần Python ≤ 3.12 và numpy < 2:
+# ghim "numpy<2" kèm theo — pip tự resolve numpy 2 sẽ làm vỡ môi trường (đã gặp trên VM của Muse).
 if "$PY" -c "import mediapipe as m; m.solutions.face_detection" 2>/dev/null; then
   ok "mediapipe (nhận diện mặt + dáng người)"
 elif "$PY" -c 'import sys; exit(0 if sys.version_info < (3,13) else 1)'; then
-  echo "  → cài mediapipe==0.10.14"; pipi "mediapipe==0.10.14" && ok "mediapipe 0.10.14" || warn "Không cài được mediapipe → shots.py dùng OpenCV (cỡ cảnh kém chính xác hơn)"
+  echo "  → cài mediapipe==0.10.14"; pipi "mediapipe==0.10.14" "numpy<2" && ok "mediapipe 0.10.14" || warn "Không cài được mediapipe → shots.py dùng OpenCV (cỡ cảnh kém chính xác hơn)"
 else
   warn "Python $("$PY" -c 'import sys;print(*sys.version_info[:2],sep=".")') chưa có mediapipe bản cũ → shots.py dùng OpenCV. Muốn chính xác hơn: PYTHON=python3.12 bash setup.sh"
 fi

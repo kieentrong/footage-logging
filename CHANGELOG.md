@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.2.0 — 2026-10-29 · Hỗ trợ Muse + khoá quy trình
+- `SKILL.md`: thêm mục **Khoá quy trình — không giao lưng chừng**: thứ tự tầng bắt buộc (máy đo → bóc băng → mô tả thô → agent xem 2 lượt → log) và cổng hoàn thành — bảng log chỉ là thành phẩm khi gộp đủ 4 nguồn (số đo + transcript + mô tả thô + notes của agent); giao thiếu tầng phải ghi rõ là BẢN TRUNG GIAN. Bóc băng khoá trước mô tả vì mô tả dùng lời thoại làm ngữ cảnh.
+- Hỗ trợ **Muse** chính thức: ghi chú môi trường VM/sandbox (venv riêng + ghim `numpy<2` cho mediapipe 0.10.14); agent có SSH tới Mac (Muse) tự chạy tầng Mac qua SSH và chạy cả tầng đo ngay trên Mac — không chép footage nặng về VM, không cần người dùng bấm `.command`.
+- `tools/setup.sh`: ghim `numpy<2` khi cài mediapipe, tránh pip resolve numpy 2 làm vỡ môi trường.
+- Thuật ngữ trung tính: "Claude xem 2 lượt" → "agent xem 2 lượt" (Claude hoặc Muse); ưu tiên gộp: agent > AI local > máy. README thêm Cách 4 — Muse.
+- Bài học từ một lần chạy thật: agent giao bảng log mới có tầng đo như thành phẩm, người dùng phải nhắc hai lần mới bổ sung đủ tầng — mục Khoá quy trình ở bản này nhằm chặn đúng lỗi đó.
+
 ## 2.1.0 — 2026-10-27 · Bản cộng đồng
 - Bỏ mọi đường dẫn và tên dự án nội bộ; `SKILL.md` viết lại cho mọi người dùng, công cụ nằm ngay trong thư mục skill.
 - Biến môi trường `FL_OUT` (thư mục kết quả, mặc định `_SOCIAL`) và `FL_TZ` (múi giờ nơi quay, mặc định 7).

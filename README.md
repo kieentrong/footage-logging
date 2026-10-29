@@ -18,7 +18,7 @@
 ---
 
 Sau một buổi quay bạn có vài trăm clip từ máy chính, kính POV, điện thoại, mic rời. **Footage Logging** là một
-[Claude Skill](https://support.claude.com/en/articles/12512180-use-skills-in-claude) kèm bộ script giúp Claude
+[Claude Skill](https://support.claude.com/en/articles/12512180-use-skills-in-claude) kèm bộ script giúp Claude/Muse
 **xem hết** chỗ đó: QC kỹ thuật từng giây, chia cảnh, nhận ra cú máy (chân máy / gimbal / cầm tay, pan / tilt / push / zoom…),
 cỡ cảnh, nét, rung, bóc băng, mô tả việc đang diễn ra, đánh dấu đoạn hay, loại đoạn hỏng hoặc có rủi ro khi đăng,
 rồi xuất bảng log HTML / CSV / JSON để bạn (hoặc bước dựng tiếp theo) dùng ngay.
@@ -71,7 +71,7 @@ các đoạn phải loại vì nội dung, và vài ý tưởng video rút ra t�
    (mũi tên hướng máy, khung mặt, thanh xanh/vàng/đỏ theo từng giây).
 2. **AI local** (tuỳ chọn, Mac Apple Silicon, miễn phí). `mlx-whisper large-v3-turbo` bóc băng (tiếng Việt chuẩn hơn hẳn Whisper small),
    `Qwen2.5-VL` nhìn từng cảnh và viết mô tả thô. Chạy được qua đêm, không tốn lượt Claude.
-3. **Claude xem 2 lượt.** Lượt 1 xem contact sheet + lời thoại của toàn bộ dự án. Lượt 2 xem dải khung 0.4 giây ở những đoạn ứng viên
+3. **Claude/Muse xem 2 lượt.** Lượt 1 xem contact sheet + lời thoại của toàn bộ dự án. Lượt 2 xem dải khung 0.4 giây ở những đoạn ứng viên
    để chốt in/out, sửa chỗ máy đoán sai, bắt rủi ro mà máy không thấy. Khi gộp bảng: **Claude > AI local > máy đo**.
 
 ## Yêu cầu
@@ -80,7 +80,7 @@ các đoạn phải loại vì nội dung, và vài ý tưởng video rút ra t�
 |---|---|---|
 | Hệ điều hành | macOS hoặc Linux (Windows: qua WSL2, chưa thử) | Mac Apple Silicon (M1–M4) cho AI local |
 | Phần mềm | `ffmpeg`, Python 3.9+ (`opencv-python-headless`, `numpy`, `pillow`) | `mediapipe==0.10.14` (cần Python ≤ 3.12) cho nhận diện người chính xác · Node 18+ cho Whisper small |
-| Claude | Gói có Skills + code execution, hoặc [Claude Code](https://docs.claude.com/en/docs/claude-code/overview) | |
+| Claude / Muse | Gói có Skills + code execution, hoặc [Claude Code](https://docs.claude.com/en/docs/claude-code/overview), hoặc Muse | |
 | Ổ đĩa | ~2GB trống cho cache | ~7GB cho model AI local |
 
 `tools/setup.sh` kiểm tra và cài phần Python cho bạn.
@@ -116,6 +116,16 @@ git clone https://github.com/kieentrong/footage-logging && cd footage-logging
 bash tools/setup.sh
 ```
 Rồi chạy các lệnh ở [Chạy tay từng bước](#chạy-tay-từng-bước).
+
+### Cách 4 — Muse
+
+Cài skill vào thư mục custom skills của Muse (`~/workspace/custom-skills/footage_logging/`, gồm `SKILL.md`,
+`tools/`, `docs/` và một `skill.yaml` trỏ tới SKILL.md), rồi nói *"log source folder này"* trong Muse.
+Hai lưu ý khi Muse chạy trong máy ảo riêng:
+
+- Cài phụ thuộc Python vào **venv riêng** và ghim `numpy<2` (mediapipe 0.10.14 xung đột numpy 2).
+- Nếu Muse đã có SSH tới Mac của bạn, Muse tự chạy tầng AI local qua SSH — và chạy cả tầng máy đo ngay
+  trên Mac, không chép footage nặng về máy ảo.
 
 ## Dùng với Claude
 

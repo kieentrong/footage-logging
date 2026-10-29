@@ -1,6 +1,6 @@
 ---
 name: footage-logging
-description: Log & lọc source quay (footage logging) như một assistant editor — QC kỹ thuật từng giây, chia cảnh, nhận diện cách đặt máy/chuyển động/cỡ cảnh, bóc băng, mô tả từng cảnh, đánh dấu đoạn hay/đoạn loại, xuất bảng log HTML/CSV. Dùng khi người dùng nhắc lọc source, log source, bóc băng, xem footage, clip nào dùng được, tìm đoạn hay, hoặc đưa một folder video đã quay.
+description: Log & lọc source quay (footage logging) như một assistant editor — QC kỹ thuật từng giây, chia cảnh, nhận diện cách đặt máy/chuyển động/cỡ cảnh, bóc băng, mô tả từng cảnh, đánh dấu đoạn hay/đoạn loại, xuất bảng log HTML/CSV. Dùng khi người dùng nhắc lọc source, log source, bóc băng, xem footage, clip nào dùng được, tìm đoạn hay, hoặc đưa một folder video đã quay. Dùng được với Claude (Code / app) và Muse.
 ---
 
 # Footage Logging — log & lọc source theo từng cảnh
@@ -8,8 +8,8 @@ description: Log & lọc source quay (footage logging) như một assistant edit
 Người dùng đưa một folder dự án đã quay → mình làm đúng việc của assistant editor ngồi log source: xem hết,
 QC kỹ thuật, bóc băng, mô tả từng cảnh, đánh dấu đoạn hay, loại đoạn hỏng, xuất bảng log để họ (hoặc bước dựng
 sau) dùng ngay. Để xem kỹ mà không tốn sức, việc chia 3 tầng: **máy đo** (script, chạy trên máy có footage)
-→ **AI local** (tuỳ chọn, Mac Apple Silicon, miễn phí) → **Claude xem 2 lượt**. Kết quả là bảng log mỗi dòng
-một CẢNH (không phải một clip).
+→ **AI local** (tuỳ chọn, Mac Apple Silicon, miễn phí) → **agent xem 2 lượt** (Claude hoặc Muse — tài liệu
+này gọi chung là "agent"). Kết quả là bảng log mỗi dòng một CẢNH (không phải một clip).
 
 ## Bộ công cụ
 Thư mục `tools/` nằm cạnh file SKILL.md này (gọi là `$T`). Đọc `docs/pipeline.md` khi cần chi tiết lệnh, ngưỡng, bẫy.
@@ -27,6 +27,18 @@ Thư mục `tools/` nằm cạnh file SKILL.md này (gọi là `$T`). Đọc `do
 Mọi kết quả ghi vào `<dự án>/_SOCIAL/analysis/` (đổi tên thư mục bằng biến môi trường `FL_OUT`). Không bao giờ
 xoá, đổi tên hay ghi đè file source.
 
+## Khoá quy trình — không giao lưng chừng
+
+Thứ tự bắt buộc, không đảo, không bỏ tầng:
+
+1. **Máy đo:** `analyze.py` → `shots.py` (mục 1)
+2. **Bóc băng** (mục 2) — phải xong TRƯỚC mô tả: prompt mô tả có kèm lời thoại, lượt xem của agent cũng đọc transcript. Mô tả chạy khi chưa có transcript là mô tả thiếu ngữ cảnh, phải làm lại.
+3. **AI local mô tả thô** (mục 2) — chỉ là bản nháp để lọc, agent chốt.
+4. **Agent xem 2 lượt, ghi notes** (mục 3) — mô tả trong log cuối là của agent; ưu tiên gộp: agent > AI local > máy.
+5. **`review.py log` + báo cáo** (mục 4).
+
+**Cổng hoàn thành:** chỉ được nói "đã log xong" khi bảng log đã gộp đủ 4 nguồn (số đo + transcript + mô tả thô + notes của agent). Thiếu tầng nào thì bản giao là **BẢN TRUNG GIAN** — nói rõ còn thiếu tầng gì ngay trong tin nhắn/báo cáo giao, không trình bày như thành phẩm. Tốc độ không phải lý do bỏ tầng: chạy nền, chia lượt, báo tiến độ — nhưng không rút gọn quy trình.
+
 ## 0. Bắt đầu
 - Xác định môi trường chạy:
   - **Có shell trên chính máy chứa footage** (Claude Code, terminal macOS/Linux, WSL): chạy thẳng các lệnh dưới.
@@ -35,6 +47,12 @@ xoá, đổi tên hay ghi đè file source.
     dự án và folder chứa `tools/`; thiếu thì xin một lần.
 - `bash $T/setup.sh` (lần đầu). Nếu script báo dùng OpenCV thay mediapipe thì cỡ cảnh/số người kém chính xác hơn —
   nói rõ với người dùng.
+- **Chạy trong VM/sandbox (như Muse):** cài phụ thuộc vào một venv riêng và ghim `numpy<2` — mediapipe
+  0.10.14 xung đột numpy 2, pip tự resolve bản numpy mới nhất sẽ làm vỡ môi trường; Python hệ thống kiểu Debian
+  còn có thể chặn pip gỡ numpy có sẵn. Venv riêng tránh được cả hai.
+- **Agent có SSH tới Mac của người dùng (như Muse đã nối sẵn):** tự chạy tầng Mac qua SSH
+  (`bash $T/mac_local.sh all "<dự án>"`), không cần nhờ người dùng nhấp đúp `.command`. Tầng máy đo cũng chạy
+  thẳng trên Mac qua SSH được — khỏi chép footage nặng về VM, chỉ chép kết quả (log, ảnh trang) về.
 - Dự án đã có `_SOCIAL/analysis/` thì đọc `_SOCIAL/AGENTS.md` (nếu có) trước — mọi tool có cache, không làm lại phần đã xong.
 - Khảo sát nhanh: số clip, tổng thời lượng theo nhóm thiết bị, có proxy / mic rời không → báo người dùng 3–4 dòng
   + ước lượng thời gian trước khi chạy lớn. Chỉ hỏi khi thật cần (dự án dùng để làm gì, nhân vật nào cần gọi tên).
@@ -59,18 +77,19 @@ touch _SOCIAL/analysis/shots/_DONE                        # báo phần Mac chuy
   POV luôn "đi tới/quay đầu"; DOF chỉ có nghĩa với máy chính; zoom vs dolly chỉ là đoán.
 
 ## 2. Bóc băng + AI local
+Thứ tự trong mục này cũng khoá: **bóc băng trước, mô tả sau** (xem Khoá quy trình).
 - **Có Mac Apple Silicon:** `bash $T/mac_local.sh all "<dự án>"` (hoặc người dùng nhấp đúp
   `tools/chay_ai_local.command` rồi chọn folder dự án). Lần đầu tải ~6–7GB model.
   - mlx-whisper large-v3-turbo: transcript chuẩn (tiếng Việt tốt hơn hẳn Whisper small), có mốc từng từ.
   - Qwen2.5-VL viết `vlm/<clip>__sNN.json`: mô tả, loại cảnh, góc máy, cỡ cảnh, thời điểm, rủi ro, điểm nội dung,
-    vai trò. Mô tả thô, hay chung chung và chấm "hook" quá tay → chỉ dùng để lọc, Claude chốt.
-  - Nếu Claude không gõ được vào Terminal của Mac (chỉ bấm), nhờ người dùng nhấp đúp file `.command`.
+    vai trò. Mô tả thô, hay chung chung và chấm "hook" quá tay → chỉ dùng để lọc, agent chốt.
+  - Nếu agent không gõ được vào Terminal của Mac (chỉ bấm), nhờ người dùng nhấp đúp file `.command`. Agent có SSH (Muse) thì tự chạy, xem mục 0.
 - **Không có Mac:** `bash $T/setup.sh --whisper` rồi `node ~/.footage-logging/whisper/transcribe.mjs . --budget 150`.
   Whisper small nghe tiếng Anh ổn, tiếng Việt kém → chỉ để định vị và hiểu nội dung; khi trích lời thì sửa theo
   ngữ cảnh, đoạn không chắc ghi `(nghe không rõ)`, tuyệt đối không bịa lời.
 - Transcript đã có (vd. bản mlx) không bị ghi đè bởi bản kém hơn.
 
-## 3. Claude xem 2 lượt (phần quan trọng nhất)
+## 3. Agent xem 2 lượt (phần quan trọng nhất)
 **Lượt 1 — toàn cảnh:** `python3 $T/review.py pages . --only POV --per 3 --tag _pov` → xem từng ảnh trang
 (contact sheet có mũi tên hướng máy, khung mặt, thanh màu xanh/vàng/đỏ theo giây) + đọc `.txt` cùng tên (số đo,
 lời thoại mới nhất, mô tả AI local). Footage BTS/POV/điện thoại xem hết — thường là xương sống câu chuyện. Máy chính
@@ -94,11 +113,13 @@ Cách nhìn của editor:
 - Loại kèm lý do: hỏng kỹ thuật, và những thứ máy không bắt được — hút thuốc, cảnh thiếu lịch sự, thông tin riêng
   (màn hình tin nhắn, giấy tờ, biển số), trẻ em, người lạ nhìn rõ mặt, thông tin nhạy cảm về công việc (giá, hợp đồng,
   nền tảng thuê). Loại theo khoảng giây, không loại cả clip nếu phần còn lại dùng được.
-- Ưu tiên khi gộp: Claude > AI local > máy.
+- Ưu tiên khi gộp: agent > AI local > máy.
 
 ## 4. Bảng log & báo cáo
 `python3 $T/review.py log .` → `clip_log.html` (có ảnh, lọc "Dùng được / ND ≥ 7 / Bị loại"), `clip_log.csv`
 (~49 cột, mở bằng Excel/Sheets), `clip_log.json` (cho bước dựng). Gửi người dùng html + csv.
+Chỉ chạy `log` LẦN CUỐI khi đã đủ transcript + vlm + notes (Khoá quy trình). Chạy `log` trước đó để xem tiến độ
+thì được, nhưng file đó là bản trung gian — giao cho người dùng phải nói rõ còn thiếu tầng nào.
 
 Báo cáo đọc trong 1 phút: tổng clip / cảnh / thời lượng theo thiết bị; bao nhiêu dùng được; file hỏng (tên file);
 5–8 khoảnh khắc mạnh nhất (clip + giây + vì sao); các đoạn loại vì nội dung; 3–6 ý tưởng video rút ra từ source;
