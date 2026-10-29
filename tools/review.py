@@ -301,14 +301,14 @@ def write_html(A, rows):
     page = f"""<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Footage log</title><style>
 :root{{--bg:#111214;--fg:#ececec;--mut:#9a9ba3;--line:#2a2b30;--chip:#23252a}}
 body{{font:14px/1.45 -apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--fg);margin:16px}}
-table{{border-collapse:collapse;width:100%}}td{{border-bottom:1px solid var(--line);padding:8px;vertical-align:top}}
-img{{width:300px;max-width:30vw;border-radius:6px}}.b{{display:inline-block;width:10px;height:10px;border-radius:5px;margin-right:6px}}
+table{{border-collapse:collapse;width:100%;table-layout:fixed}}td{{border-bottom:1px solid var(--line);padding:8px;vertical-align:top;overflow-wrap:break-word}}
+img{{width:100%;height:auto;display:block;border-radius:6px}}.b{{display:inline-block;width:10px;height:10px;border-radius:5px;margin-right:6px}}
 small{{color:var(--mut)}}.t{{display:inline-block;background:var(--chip);border-radius:10px;padding:1px 8px;margin:0 4px 4px 0;font-size:12px}}
-.d{{margin:4px 0}}.rk{{color:#ff8b8b}}.n{{white-space:nowrap}}.s{{font-size:11px}}.id{{width:220px}}
+.d{{margin:4px 0}}.rk{{color:#ff8b8b}}.n{{word-break:break-word}}.s{{font-size:11px;overflow-wrap:anywhere}}.id{{width:190px}}
 .bar{{position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:2}}button{{background:var(--chip);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:4px 10px;margin-right:6px;cursor:pointer}}
 </style><h2>Footage log — {len(rows)} cảnh</h2>
 <div class=bar><button onclick="f(0)">Tất cả</button><button onclick="f(1)">Dùng được</button><button onclick="f(2)">ND ≥ 7</button><button onclick="f(3)">Bị loại</button></div>
-<table>{''.join(tr)}</table>
+<table><colgroup><col style="width:190px"><col style="width:280px"><col><col style="width:120px"><col style="width:20%"></colgroup>{''.join(tr)}</table>
 <script>function f(m){{document.querySelectorAll('tr').forEach(r=>{{const ok=r.dataset.ok==='1',c=+r.dataset.c;r.style.display=(m==0||m==1&&ok||m==2&&c>=7||m==3&&!ok)?'':'none'}})}}</script>"""
     open(os.path.join(A, 'clip_log.html'), 'w', encoding='utf-8').write(page)
 

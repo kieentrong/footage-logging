@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.2.1 — 2026-10-29 · Vá hiện trường: thư mục "Proxies", nhận diện máy qua XML, layout HTML
+- `analyze.py`: nhận diện cả thư mục **`Proxies`** (kiểu Premiere) bên cạnh `Proxy` — trước đây file proxy bị đếm như clip riêng, nhân đôi dự án.
+- `analyze.py`: nhận diện thiết bị qua **XML sidecar** của Sony (`<Device manufacturer modelName>`, vd. `KEN9316.MP4` → `KEN9316M01.XML`). File XAVC gần như không ghi tag model trong MP4, và quy tắc tên file chỉ khớp tiền tố NEX/C#### trong M4ROOT — file tiền tố khác nằm ở gốc thẻ từng rơi xuống `unknown` dù quay bằng FX3. Thứ tự ưu tiên không đổi: tag trong file trước, sidecar là fallback cuối.
+- `review.py` (HTML): khoá layout bảng (cột cố định, cột mô tả ưu tiên, bỏ `nowrap` ở cột điểm) — bản cũ bóp nghẹt cột mô tả khi mở ở cửa sổ hẹp/xem trước trong app.
+- Bài học từ một lần chạy thật trên dự án 3 thẻ nhớ (490 clip): cả ba lỗi trên chỉ lộ khi chạy đủ nhiều định dạng thẻ khác nhau — mỗi thẻ một kiểu đặt proxy, một tiền tố tên file, một thân máy.
+
+
 ## 2.2.0 — 2026-10-29 · Hỗ trợ Muse + khoá quy trình
 - `SKILL.md`: thêm mục **Khoá quy trình — không giao lưng chừng**: thứ tự tầng bắt buộc (máy đo → bóc băng → mô tả thô → agent xem 2 lượt → log) và cổng hoàn thành — bảng log chỉ là thành phẩm khi gộp đủ 4 nguồn (số đo + transcript + mô tả thô + notes của agent); giao thiếu tầng phải ghi rõ là BẢN TRUNG GIAN. Bóc băng khoá trước mô tả vì mô tả dùng lời thoại làm ngữ cảnh.
 - Hỗ trợ **Muse** chính thức: ghi chú môi trường VM/sandbox (venv riêng + ghim `numpy<2` cho mediapipe 0.10.14); agent có SSH tới Mac (Muse) tự chạy tầng Mac qua SSH và chạy cả tầng đo ngay trên Mac — không chép footage nặng về VM, không cần người dùng bấm `.command`.

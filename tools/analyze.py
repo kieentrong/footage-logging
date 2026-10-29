@@ -20,7 +20,7 @@ OUT_DIR = os.environ.get('FL_OUT', '_SOCIAL')   # thư mục kết quả trong d
 TZ = timezone(timedelta(hours=float(os.environ.get('FL_TZ', '7'))))   # múi giờ nơi quay (FL_TZ, mặc định UTC+7)
 
 VIDEO_EXT = ('.mp4', '.mov', '.m4v', '.mts', '.avi', '.mkv', '.insv', '.lrv')
-SKIP_DIRS = (OUT_DIR, '_SOCIAL', '99_EXPORT', 'Proxy', 'THMBNL', 'SUB', '03_ELEMENT', '.Trash')
+SKIP_DIRS = (OUT_DIR, '_SOCIAL', '99_EXPORT', 'Proxy', 'Proxies', 'THMBNL', 'SUB', '03_ELEMENT', '.Trash')
 FPS = 5
 W = 360
 
@@ -55,6 +55,20 @@ def detect_device(tags, path, vstream):
         return 'sony', 'CAM'
     if 'samsung' in make.lower() or 'android' in (tags.get('com.android.version') or '').lower():
         return 'android', 'PHONE'
+    # Sony XAVC ghi gần như không có tag trong MP4 — model máy nằm ở XML sidecar
+    # (KEN9316.MP4 -> KEN9316M01.XML, thẻ <Device manufacturer=.. modelName=..>)
+    try:
+        side = re.sub(r'\.[^.]+$', 'M01.XML', path)
+        if os.path.exists(side):
+            txt = open(side, encoding='utf-8', errors='ignore').read()
+            dev = re.search(r'<Device[^>]*>', txt)
+            if dev:
+                manu = re.search(r'manufacturer="([^"]+)"', dev.group(0))
+                mod = re.search(r'modelName="([^"]+)"', dev.group(0))
+                if mod:
+                    return ((manu.group(1) + ' ') if manu else '') + mod.group(1), 'CAM'
+    except Exception:
+        pass
     return model or 'unknown', 'CAM'
 
 
@@ -87,7 +101,7 @@ def find_proxy(project, path):
     stem = os.path.splitext(os.path.basename(path))[0]
     cands = []
     for root, dirs, files in os.walk(project):
-        if os.path.basename(root).lower() == 'proxy':
+        if os.path.basename(root).lower() in ('proxy', 'proxies'):
             for f in files:
                 if f.startswith('._'):
                     continue
